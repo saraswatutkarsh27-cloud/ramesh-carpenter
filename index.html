@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Ramesh Carpenter — Crafted by Hand</title>
+  <meta name="description" content="Ramesh Carpenter — custom woodwork, furniture and repair.">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+    :root{
+      --ink:#f7ead1;
+      --blue:#101a73;
+      --blue2:#1729a8;
+      --red:#ef4a61;
+      --yellow:#f4d84a;
+      --glass:rgba(7,10,45,.72);
+      --line:rgba(247,234,209,.18);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%;overflow:hidden;background:#111}
+    body{font-family:"DM Sans",sans-serif;color:var(--ink)}
+    .stage{
+      position:fixed;inset:0;
+      background:#1623a2 url("ramesh-carpenter-poster.png") center/cover no-repeat;
+    }
+    .stage:after{
+      content:"";position:absolute;inset:0;
+      background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(4,6,35,.28) 55%,rgba(4,6,35,.82));
+      pointer-events:none;
+    }
+    .grain{
+      position:absolute;inset:-50%;
+      opacity:.11;pointer-events:none;mix-blend-mode:screen;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.7'/%3E%3C/svg%3E");
+      animation:grain .25s steps(2) infinite;
+    }
+    @keyframes grain{0%{transform:translate(0,0)}25%{transform:translate(2%,-1%)}50%{transform:translate(-1%,2%)}75%{transform:translate(1%,1%)}100%{transform:translate(-2%,-1%)}}
+    .topbar{
+      position:absolute;z-index:4;top:22px;left:22px;right:22px;
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .brand{font:700 15px "Space Grotesk";letter-spacing:.12em;text-transform:uppercase}
+    .tag{padding:9px 13px;border:1px solid var(--line);background:rgba(7,10,45,.34);backdrop-filter:blur(10px);border-radius:999px;font-size:12px}
+    .spark{position:absolute;width:12px;height:12px;background:var(--yellow);transform:rotate(45deg);z-index:2;filter:drop-shadow(0 0 8px rgba(244,216,74,.35))}
+    .s1{left:9%;top:18%}.s2{right:12%;top:26%;background:var(--red);width:17px;height:17px}.s3{right:8%;bottom:29%;background:#72d45a;width:10px;height:10px}.s4{left:44%;top:13%;background:var(--red);width:9px;height:9px}
+    .content{
+      position:absolute;z-index:3;inset:0;
+      display:flex;align-items:flex-end;justify-content:space-between;
+      padding:0 5vw 7.5rem;gap:2rem;
+    }
+    .intro{max-width:430px}
+    .eyebrow{font-size:12px;letter-spacing:.2em;text-transform:uppercase;opacity:.78;margin-bottom:9px}
+    h1{font:700 clamp(42px,7vw,92px)/.9 "Space Grotesk";margin:0;text-transform:uppercase;letter-spacing:-.06em}
+    .sub{font-size:16px;line-height:1.45;max-width:380px;margin:17px 0 0;color:#fff4df}
+    .cta{
+      display:inline-flex;align-items:center;gap:10px;margin-top:22px;
+      padding:13px 18px;border-radius:999px;background:var(--ink);color:#111;
+      font-weight:700;text-decoration:none;transition:.2s transform,.2s background;
+    }
+    .cta:hover{transform:translateY(-2px);background:#fff}
+    .pill{
+      min-width:250px;padding:18px 20px;border:1px solid var(--line);border-radius:22px;
+      background:var(--glass);backdrop-filter:blur(14px);box-shadow:0 20px 50px rgba(0,0,0,.25)
+    }
+    .pill small{display:block;text-transform:uppercase;letter-spacing:.15em;opacity:.65;font-size:10px;margin-bottom:7px}
+    .pill strong{font:600 18px "Space Grotesk"}
+    .player{
+      position:absolute;z-index:6;left:50%;bottom:18px;transform:translateX(-50%);
+      width:min(720px,calc(100% - 28px));padding:11px 12px;
+      display:flex;align-items:center;gap:12px;
+      background:rgba(7,10,45,.82);border:1px solid var(--line);border-radius:18px;
+      backdrop-filter:blur(16px);box-shadow:0 20px 60px rgba(0,0,0,.35)
+    }
+    button{font:inherit;color:inherit}
+    .play,.icon{
+      border:0;background:rgba(247,234,209,.1);width:38px;height:38px;border-radius:12px;cursor:pointer;
+      display:grid;place-items:center
+    }
+    .play{background:var(--ink);color:#111;font-size:16px}
+    .track{min-width:0;flex:1}
+    .track b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .track span{display:block;font-size:11px;opacity:.55;margin-top:2px}
+    .bar{height:3px;background:rgba(247,234,209,.18);border-radius:99px;margin-top:9px;overflow:hidden}
+    .bar i{display:block;width:0;height:100%;background:var(--ink)}
+    .drawer{
+      position:absolute;z-index:8;right:20px;bottom:80px;width:min(380px,calc(100% - 40px));
+      background:rgba(7,10,45,.94);border:1px solid var(--line);border-radius:22px;
+      backdrop-filter:blur(18px);padding:18px;display:none;box-shadow:0 25px 70px rgba(0,0,0,.4)
+    }
+    .drawer.open{display:block}
+    .drawer h2{font:600 20px "Space Grotesk";margin:0 0 14px}
+    .service{padding:12px 0;border-top:1px solid var(--line)}
+    .service b{display:block}.service span{display:block;font-size:12px;opacity:.62;margin-top:4px}
+    .contact{display:flex;gap:9px;margin-top:14px}
+    .contact a{flex:1;text-align:center;padding:11px;border-radius:12px;background:var(--ink);color:#111;text-decoration:none;font-weight:700;font-size:13px}
+    .contact a.alt{background:rgba(247,234,209,.1);color:var(--ink);border:1px solid var(--line)}
+    @media(max-width:700px){
+      .topbar{top:14px;left:14px;right:14px}.content{padding:0 22px 6.5rem;align-items:flex-end}
+      .pill{display:none}.sub{font-size:14px}.drawer{right:14px;bottom:76px}
+      .player{bottom:10px}.brand{font-size:12px}
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="grain"></div>
+    <i class="spark s1"></i><i class="spark s2"></i><i class="spark s3"></i><i class="spark s4"></i>
+    <div class="topbar">
+      <div class="brand">Ramesh Carpenter</div>
+      <div class="tag">Handcrafted • Since 1998</div>
+    </div>
+
+    <div class="content">
+      <section class="intro">
+        <div class="eyebrow">Custom woodwork / repairs / furniture</div>
+        <h1>Made<br>to last.</h1>
+        <p class="sub">Furniture, doors, shelves and custom woodwork — measured, cut and finished with care.</p>
+        <a class="cta" href="#services" onclick="toggleDrawer();return false;">Explore work <span>↗</span></a>
+      </section>
+      <aside class="pill">
+        <small>Now booking</small>
+        <strong>Custom carpentry &amp; home repairs</strong>
+      </aside>
+    </div>
+
+    <div class="drawer" id="drawer">
+      <h2>What Ramesh makes</h2>
+      <div class="service"><b>Custom Furniture</b><span>Tables, beds, cabinets and made-to-measure pieces.</span></div>
+      <div class="service"><b>Doors &amp; Woodwork</b><span>Doors, frames, panels, shelves and built-ins.</span></div>
+      <div class="service"><b>Repairs &amp; Refresh</b><span>Fixes, adjustments, sanding and refinishing.</span></div>
+      <div class="contact">
+        <a href="tel:+919999999999">Call</a>
+        <a class="alt" href="https://wa.me/919999999999" target="_blank" rel="noopener">WhatsApp</a>
+      </div>
+    </div>
+
+    <div class="player">
+      <button class="play" id="play" aria-label="Play intro sound">▶</button>
+      <div class="track">
+        <b id="trackTitle">Ramesh Carpenter — Workshop</b>
+        <span>Crafted by hand • Built for your space</span>
+        <div class="bar"><i id="progress"></i></div>
+      </div>
+      <button class="icon" onclick="toggleDrawer()" aria-label="Open services">☰</button>
+    </div>
+  </div>
+
+  <script>
+    function toggleDrawer(){ document.getElementById('drawer').classList.toggle('open'); }
+    const play = document.getElementById('play'), progress = document.getElementById('progress');
+    let playing=false, t=0, timer=null;
+    play.onclick=()=>{
+      playing=!playing; play.textContent=playing?'Ⅱ':'▶';
+      if(playing){
+        timer=setInterval(()=>{ t=(t+0.35)%100; progress.style.width=t+'%'; },350);
+      }else{clearInterval(timer)}
+    };
+  </script>
+</body>
+</html>
