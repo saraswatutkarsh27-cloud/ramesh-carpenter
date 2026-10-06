@@ -84,9 +84,11 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
   .ctrl .skip{display:none}.list{bottom:88px}.seek span{font-size:10px}
 }
 @media(prefers-reduced-motion:reduce){.list,.play{transition:none}}
+#yt{position:fixed;left:-9999px;bottom:0;width:200px;height:200px;opacity:0;pointer-events:none}
 </style>
 </head>
 <body>
+<div id="yt"></div>
 <div class="stage" id="stage">
 
   <div class="list glass" id="list" role="region" aria-label="Playlist">
@@ -119,49 +121,95 @@ input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;bac
   </div>
 </div>
 
+<script src="https://www.youtube.com/iframe_api"></script>
 <script>
-// Each track is something Ramesh does. Edit freely.
-const tracks=[
-  {t:"Custom Furniture",s:"Tables, beds, cabinets and made-to-measure pieces",d:200},
-  {t:"Doors & Frames",s:"Wooden doors, frames and panels, fitted properly",d:165},
-  {t:"Shelves & Built-ins",s:"Wardrobes, wall units, kitchen and storage",d:190},
-  {t:"Repairs & Adjustments",s:"Hinges, joints, sagging drawers, broken legs",d:140},
-  {t:"Sanding & Refinishing",s:"Polish, paint and a new life for old wood",d:175},
-  {t:"Book a Visit",s:"Call or WhatsApp Ramesh for a free measurement",d:120}
-];
+/* Playlist is loaded from embed.json (same folder as this page).
+   Format: {"songs":[{"name":"Song title","id":"YouTubeVideoID"}, ...]} */
+let SONGS=[],apiReady=false;
+
 const $=id=>document.getElementById(id);
-const fmt=n=>Math.floor(n/60)+":"+String(Math.floor(n%60)).padStart(2,"0");
-let i=0,pos=0,playing=false,timer=null;
+const fmt=n=>{n=Math.max(0,n||0);return Math.floor(n/60)+":"+String(Math.floor(n%60)).padStart(2,"0")};
+let yt=null,ready=false,i=0,playing=false,timer=null,dragging=false;
 
-$("rows").innerHTML=tracks.map((k,n)=>
- `<button class="row" data-n="${n}"><span class="cover">${n+1}</span>
-  <div><b>${k.t}</b><span>${k.s}</span></div><em>${fmt(k.d)}</em></button>`).join("");
-
-function load(n){
-  i=(n+tracks.length)%tracks.length; pos=0;
-  $("cover").textContent=i+1;
-  $("tTitle").textContent=tracks[i].t; $("tSub").textContent="Ramesh Carpenter / "+tracks[i].s;
+function renderRows(){
+  $("rows").innerHTML=SONGS.map((k,n)=>
+   `<button class="row" data-n="${n}"><span class="cover">${n+1}</span>
+    <div><b>${k.t||"Track "+(n+1)}</b><span>${k.a||"Ramesh Carpenter"}</span></div><em></em></button>`).join("");
   document.querySelectorAll(".row").forEach((r,x)=>r.classList.toggle("on",x===i));
-  draw();
 }
-function draw(){
-  const d=tracks[i].d, p=pos/d*100;
+function setMeta(){
+  const k=SONGS[i]||{t:"Loading…",a:""};
+  $("cover").textContent=i+1;
+  $("tTitle").textContent=k.t||"Track "+(i+1);
+  $("tSub").textContent=k.a||"Ramesh Carpenter";
+  document.querySelectorAll(".row").forEach((r,x)=>r.classList.toggle("on",x===i));
+}
+function load(n,auto){
+  i=(n+SONGS.length)%SONGS.length; setMeta(); draw(0,0);
+  if(!ready)return;
+  auto?yt.loadVideoById(SONGS[i].id):yt.cueVideoById(SONGS[i].id);
+}
+function draw(pos,d){
+  const p=d?pos/d*100:0;
   $("seek").value=p; $("seek").style.setProperty("--p",p+"%");
   $("time").textContent=fmt(pos)+" / "+fmt(d);
+}
+function tick(){
+  if(!ready||dragging)return;
+  draw(yt.getCurrentTime(),yt.getDuration());
 }
 function setPlaying(p){
   playing=p; $("stage").classList.toggle("is-playing",p);
   $("play").setAttribute("aria-label",p?"Pause":"Play");
-  clearInterval(timer);
-  if(p) timer=setInterval(()=>{ pos+=1; if(pos>=tracks[i].d) load(i+1); draw(); },1000);
+  clearInterval(timer); if(p)timer=setInterval(tick,500);
 }
-$("play").onclick=()=>setPlaying(!playing);
-$("next").onclick=()=>load(i+1);
-$("prev").onclick=()=>load(pos>3?i:i-1);
-$("seek").oninput=e=>{pos=e.target.value/100*tracks[i].d;draw()};
-$("rows").onclick=e=>{const r=e.target.closest(".row"); if(r){load(+r.dataset.n);setPlaying(true)}};
+function syncTitle(){
+  const v=yt.getVideoData&&yt.getVideoData();
+  if(v&&v.title&&!SONGS[i].t){
+    SONGS[i].t=v.title; if(v.author&&!SONGS[i].a)SONGS[i].a=v.author;
+    const r=document.querySelectorAll(".row")[i];
+    if(r){r.querySelector("b").textContent=SONGS[i].t;r.querySelector("div span").textContent=SONGS[i].a}
+    setMeta();
+  }
+  const d=yt.getDuration(); const r=document.querySelectorAll(".row em")[i];
+  if(r&&d)r.textContent=fmt(d);
+}
+
+function onYouTubeIframeAPIReady(){apiReady=true;boot()}
+function boot(){
+  if(!apiReady||!SONGS.length||yt)return;
+  yt=new YT.Player("yt",{
+    width:"200",height:"200",videoId:SONGS[0].id,
+    playerVars:{playsinline:1,controls:0,rel:0,disablekb:1},
+    events:{
+      onReady:()=>{ready=true;load(0,false)},
+      onStateChange:e=>{
+        const S=YT.PlayerState;
+        if(e.data===S.PLAYING){setPlaying(true);syncTitle()}
+        else if(e.data===S.PAUSED)setPlaying(false);
+        else if(e.data===S.ENDED)load(i+1,true);
+      },
+      onError:()=>load(i+1,true) // unavailable / non-embeddable video: skip it
+    }
+  });
+}
+
+$("play").onclick=()=>{if(!ready)return; playing?yt.pauseVideo():yt.playVideo()};
+$("next").onclick=()=>load(i+1,playing);
+$("prev").onclick=()=>{ if(ready&&yt.getCurrentTime()>3){yt.seekTo(0,true)} else load(i-1,playing) };
+$("seek").oninput=e=>{dragging=true;const d=ready?yt.getDuration():0;draw(e.target.value/100*d,d)};
+$("seek").onchange=e=>{ if(ready)yt.seekTo(e.target.value/100*yt.getDuration(),true); dragging=false };
+$("rows").onclick=e=>{const r=e.target.closest(".row"); if(r)load(+r.dataset.n,true)};
 $("toggle").onclick=()=>{const o=$("list").classList.toggle("open");$("toggle").setAttribute("aria-expanded",o)};
-load(0);
+setMeta(); draw(0,0);
+fetch("embed.json",{cache:"no-store"})
+  .then(r=>{if(!r.ok)throw new Error(r.status);return r.json()})
+  .then(d=>{
+    SONGS=(d.songs||[]).filter(s=>s&&s.id).map(s=>({id:s.id,t:s.name||"",a:s.artist||""}));
+    if(!SONGS.length)throw new Error("empty");
+    renderRows(); setMeta(); boot();
+  })
+  .catch(()=>{$("tTitle").textContent="Couldn't load embed.json";$("tSub").textContent="Check the file is next to index.html and valid JSON"});
 </script>
 </body>
 </html>
